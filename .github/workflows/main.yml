@@ -4,33 +4,43 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
+  schedule:
+    - cron: "0 */2 * * *"
   workflow_dispatch:
+    branches: [ master ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
+    name: Build playlist
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Generate Playlist
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          mkdir dist
+          python main.py
+
+      - name: Release
+        run: |
+          set -x
+          cd dist
+          zip -r playlist_by_rating.zip ./*.csv
+          assets=()
+          for asset in ./*.json; do
+            assets+=("-a" "$asset")
+          done
+          assets+=("-a" "playlist_by_rating.zip")
+          tag_name=`date '+%Y%m%d%H%M'`
+          hub release create "${assets[@]}" -m "Latest" "$tag_name"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup
+        uses: dev-drprasad/delete-older-releases@v0.1.0
+        with:
+          keep_latest: 1
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
