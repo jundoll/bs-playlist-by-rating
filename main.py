@@ -11,6 +11,6 @@ url = "https://cdn.wes.cloud/beatstar/bssb/v2-all.json"
 req = Request(url, headers={'User-Agent': user_agent})
 response = urlopen(req).read()
 data = json.loads(response)
-df = pd.DataFrame.from_dict(data, orient="index")
+df = pd.DataFrame.from_dict(data, orient="index").drop(["diffs", "mapper", "song"], axis=1)
 
 df.to_csv("dist/all.csv", index=False)
