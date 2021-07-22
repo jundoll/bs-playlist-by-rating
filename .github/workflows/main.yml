@@ -34,9 +34,9 @@ jobs:
         run: |
           set -x
           cd dist
-          zip -r playlist_by_rating.zip ./*.[csv|json]
+          zip -r playlist_by_rating.zip ./*.*
           assets=()
-          for asset in ./*.[csv|json]; do
+          for asset in ./*.*; do
             assets+=("-a" "$asset")
           done
           assets+=("-a" "playlist_by_rating.zip")
