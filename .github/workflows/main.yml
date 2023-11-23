@@ -3,9 +3,11 @@ name: BUILD
 # Controls when the workflow will run
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "0 18 * * *"
+  push:
+    branches: [ main ]
   workflow_dispatch:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -37,14 +39,14 @@ jobs:
           zip -r bad-rating-playlist.zip ./*.*
           assets=()
           for asset in ./*.csv; do
-            assets+=("-a" "$asset")
+            assets+=("$asset")
           done
           for asset in ./*.json; do
-            assets+=("-a" "$asset")
+            assets+=("$asset")
           done
           assets+=("-a" "bad-rating-playlist.zip")
           tag_name=`date '+%Y%m%d%H%M'`
-          hub release create "${assets[@]}" -m "Latest" "$tag_name"
+          gh release create "$tag_name" "${assets[@]}" --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
